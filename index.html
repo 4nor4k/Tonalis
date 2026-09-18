@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tonalis — Círculo de Quintas</title>
+<meta name="description" content="Consulta interativa de escalas, acordes e círculo de quintas para composição musical.">
+<meta name="theme-color" content="#1c1d20">
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tonalis">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1c1d20;
+    --panel:#212226;
+    --panel-hi:#26272b;
+    --shadow-dark: rgba(0,0,0,0.6);
+    --shadow-light: rgba(255,255,255,0.045);
+    --screen-bg:#111214;
+    --orange:#ff5a2b;
+    --orange-deep:#6e2a0d;
+    --orange-glow: rgba(255,90,43,0.55);
+    --text:#ddd9cf;
+    --text-mute:#847f76;
+    --text-dim:#5c584f;
+    --font-display:'Space Grotesk', Arial, sans-serif;
+    --font-mono:'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{ margin:0; }
+  body{
+    min-height:100vh;
+    background:var(--bg);
+    font-family:var(--font-display);
+    color:var(--text);
+    padding:40px 16px 70px;
+    position:relative;
+  }
+  /* ruido baixo sobre toda a pagina */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:0.05;
+    mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .device{
+    max-width:1180px;
+    margin:0 auto;
+    background:var(--panel);
+    border-radius:28px;
+    padding:30px 32px 36px;
+    box-shadow:
+      14px 14px 32px var(--shadow-dark),
+      -10px -10px 26px var(--shadow-light);
+  }
+
+  .nameplate{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:2px 6px 22px;
+    border-bottom:1px solid rgba(0,0,0,0.4);
+    margin-bottom:24px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand .name{ font-size:1.5rem; font-weight:700; letter-spacing:0.3px; color:var(--text); }
+  .brand .model{ font-family:var(--font-mono); font-size:0.78rem; color:var(--text-dim); letter-spacing:1px; }
+  .led-row{ display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:0.72rem; color:var(--text-mute); letter-spacing:1px; }
+  .led{ width:8px; height:8px; border-radius:50%; background:var(--orange); box-shadow:0 0 10px 3px var(--orange-glow); animation:blink 2.6s ease-in-out infinite; }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  .subtitle{ padding:0 6px 22px; color:var(--text-mute); font-size:0.92rem; max-width:640px; margin-top:-10px; }
+
+  .bay{ display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; }
+
+  /* ---- painel base (convexo) ---- */
+  .raised{
+    background:var(--panel-hi);
+    border-radius:20px;
+    box-shadow:
+      8px 8px 18px var(--shadow-dark),
+      -6px -6px 16px var(--shadow-light);
+  }
+  /* ---- painel recuado (tela) ---- */
+  .recessed{
+    background:var(--screen-bg);
+    border-radius:18px;
+    box-shadow:
+      inset 6px 6px 14px rgba(0,0,0,0.7),
+      inset -4px -4px 10px rgba(255,255,255,0.03);
+  }
+
+  .screen-unit{ flex:1 1 460px; min-width:320px; padding:20px; }
+  .screen-label{
+    font-family:var(--font-mono); font-size:0.7rem; color:var(--orange);
+    letter-spacing:1.5px; margin-bottom:10px; display:flex; justify-content:space-between;
+    text-shadow:0 0 8px var(--orange-glow);
+  }
+  .wheel-wrap{ width:100%; aspect-ratio:1/1; max-width:400px; margin:0 auto; }
+  svg{ width:100%; height:100%; overflow:visible; display:block; }
+
+  .wedge{ cursor:pointer; fill:#181a1d; stroke:#0b0c0e; stroke-width:1.2; transition:fill 0.15s ease; }
+  .wedge-inner{ fill:#141517; }
+  .wedge-group:hover .wedge{ fill:#232529; }
+  .wedge-group.selected .wedge{ fill:var(--orange); filter:drop-shadow(0 0 7px var(--orange-glow)); }
+  .wedge-group.selected .wedge-inner{ fill:var(--orange-deep); }
+  .wedge-group.neighbor .wedge{ fill:#3a2a18; }
+  .wedge-group.neighbor .wedge-inner{ fill:#2c2010; }
+  .wedge-label{ text-anchor:middle; dominant-baseline:middle; pointer-events:none; font-family:var(--font-mono); }
+  .wedge-label.major{ font-size:20px; font-weight:700; fill:#a9a49a; }
+  .wedge-group.selected .wedge-label.major{ fill:#0f0c0a; }
+  .wedge-group.neighbor .wedge-label.major{ fill:#f2a56a; }
+  .wedge-label.minor{ font-size:12px; fill:#605c54; font-weight:500; }
+  .wedge-group.selected .wedge-label.minor{ fill:#3a1503; }
+  .center-ring{ fill:none; stroke:rgba(255,255,255,0.05); stroke-width:1.2; }
+  .center-text{ font-family:var(--font-mono); font-size:11px; fill:var(--text-dim); text-anchor:middle; dominant-baseline:middle; }
+
+  /* ---- readout ---- */
+  .readout-unit{ flex:1 1 380px; min-width:300px; padding:20px 22px; }
+  .readout-header{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom:1px solid rgba(0,0,0,0.4); padding-bottom:10px; margin-bottom:14px;
+  }
+  .readout-header .tonic{ font-size:2.1rem; font-weight:700; letter-spacing:0.3px; color:var(--text); }
+  .readout-header .tonic small{ font-family:var(--font-mono); font-size:0.9rem; font-weight:500; color:var(--text-mute); margin-left:8px; }
+  .readout-header .kind-tag{
+    font-family:var(--font-mono); font-size:0.7rem; letter-spacing:1px;
+    color:var(--orange); border:1px solid var(--orange-deep); padding:3px 9px; border-radius:20px;
+    text-shadow:0 0 6px var(--orange-glow);
+  }
+
+  .field-label{ font-family:var(--font-mono); font-size:0.7rem; letter-spacing:1px; color:var(--text-dim); margin-top:16px; margin-bottom:8px; }
+  .chip-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .chip{
+    background:var(--panel); border-radius:8px; padding:5px 9px;
+    box-shadow:3px 3px 6px var(--shadow-dark), -2px -2px 6px var(--shadow-light);
+    font-family:var(--font-mono); font-size:0.82rem; font-weight:600; color:var(--text);
+    display:flex; flex-direction:column; align-items:center; line-height:1.1;
+  }
+  .chip .solf{ font-size:0.6rem; font-weight:400; color:var(--text-dim); }
+
+  .triad-grid{ display:flex; gap:8px; margin-top:4px; flex-wrap:wrap; }
+  .triad-card{
+    flex:1; min-width:90px; background:var(--panel); border-radius:12px; padding:9px 6px; text-align:center; cursor:pointer;
+    box-shadow:4px 4px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
+    transition:box-shadow 0.15s ease, color .15s ease;
+  }
+  .triad-card.active{ box-shadow:inset 3px 3px 7px rgba(0,0,0,0.65), inset -2px -2px 6px rgba(255,255,255,0.04); }
+  .triad-card .triad-name{ font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.5px; color:var(--text-dim); margin-bottom:3px; }
+  .triad-card.active .triad-name{ color:var(--orange); }
+  .triad-card .triad-notes{ font-weight:700; font-size:0.92rem; color:var(--text); }
+  .triad-card.active .triad-notes{ color:var(--orange); text-shadow:0 0 8px var(--orange-glow); }
+
+  .neighbor-row{ display:flex; gap:8px; margin-top:4px; flex-wrap:wrap; }
+  .neighbor-pill{
+    background:var(--panel); border-radius:20px; padding:6px 13px;
+    box-shadow:3px 3px 6px var(--shadow-dark), -2px -2px 6px var(--shadow-light);
+    font-family:var(--font-mono); font-size:0.78rem; font-weight:600; color:var(--text-mute);
+  }
+
+  /* ---- keybed ---- */
+  .keybed-unit{ margin:22px 0 0; padding:20px 24px 24px; }
+  .keybed-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+  .keybed-title{ font-family:var(--font-mono); font-size:0.72rem; letter-spacing:1.5px; color:var(--text-dim); }
+
+  .quality-tabs{ display:flex; gap:7px; flex-wrap:wrap; }
+  .qtab{
+    font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.4px;
+    background:var(--panel); color:var(--text-mute); border-radius:10px; padding:7px 12px; cursor:pointer;
+    box-shadow:4px 4px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
+    transition:box-shadow 0.15s ease, color .15s ease;
+  }
+  .qtab:hover{ color:var(--text); }
+  .qtab.active{
+    box-shadow:inset 3px 3px 7px rgba(0,0,0,0.65), inset -2px -2px 6px rgba(255,255,255,0.04);
+    color:var(--orange); text-shadow:0 0 8px var(--orange-glow);
+  }
+
+  .keyboard-scroll{ overflow-x:auto; padding:14px 4px 6px; }
+  .keyboard-scroll svg{ display:block; }
+
+  /* ---- regras (formulas) ---- */
+  .rules-unit{ margin:20px 0 0; padding:18px 24px 22px; }
+  .rules-title{ font-family:var(--font-mono); font-size:0.72rem; letter-spacing:1.5px; color:var(--text-dim); margin-bottom:12px; }
+  .rules-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px,1fr));
+    gap:8px;
+  }
+  .rule-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--panel); border-radius:10px; padding:8px 12px; cursor:pointer;
+    box-shadow:3px 3px 7px var(--shadow-dark), -2px -2px 7px var(--shadow-light);
+  }
+  .rule-row.active{ box-shadow:inset 3px 3px 7px rgba(0,0,0,0.65), inset -2px -2px 6px rgba(255,255,255,0.04); }
+  .rule-name{ font-family:var(--font-mono); font-size:0.78rem; color:var(--text); font-weight:600; }
+  .rule-row.active .rule-name{ color:var(--orange); }
+  .rule-formula{ font-family:var(--font-mono); font-size:0.78rem; color:var(--text-mute); white-space:nowrap; }
+  .rule-row.active .rule-formula{ color:var(--orange); text-shadow:0 0 6px var(--orange-glow); }
+
+  .legend-strip{
+    margin-top:22px; padding-top:18px; display:flex; gap:22px; flex-wrap:wrap;
+    font-family:var(--font-mono); font-size:0.73rem; color:var(--text-mute);
+    border-top:1px solid rgba(0,0,0,0.4);
+  }
+  .legend-strip .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+
+  footer{ text-align:center; margin-top:26px; color:var(--text-dim); font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.5px; }
+
+  @media (max-width:640px){
+    .device{ padding:22px 16px 28px; border-radius:20px; }
+    .screen-unit, .readout-unit, .keybed-unit, .rules-unit{ padding:16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div class="nameplate">
+    <div class="brand">
+      <span class="name">TONALIS</span>
+      <span class="model">CÍRCULO DE QUINTAS · MOD. CQ&#8209;12</span>
+    </div>
+    <div class="led-row"><span class="led"></span> STANDBY / READY</div>
+  </div>
+
+  <p class="subtitle">Selecione uma tonalidade no visor para consultar escala, acordes (com e sem sétima) e o desenho no teclado.</p>
+
+  <div class="bay">
+    <div class="screen-unit recessed">
+      <div class="screen-label"><span>VISOR · CIRCLE OF FIFTHS</span><span id="screen-clock">C MAJ</span></div>
+      <div class="wheel-wrap">
+        <svg viewBox="-230 -230 460 460" id="wheel"></svg>
+      </div>
+    </div>
+
+    <div class="readout-unit raised">
+      <div class="readout-header">
+        <div class="tonic"><span id="tonic-cifra">C</span><small id="tonic-solf">Dó</small></div>
+        <div class="kind-tag" id="kind-tag">MAIOR</div>
+      </div>
+
+      <div class="field-label">ESCALA MAIOR</div>
+      <div class="chip-row" id="scale-major"></div>
+
+      <div class="field-label">ESCALA MENOR RELATIVA</div>
+      <div class="chip-row" id="scale-minor"></div>
+
+      <div class="field-label">TRÍADES DA TÔNICA</div>
+      <div class="triad-grid">
+        <div class="triad-card" data-quality="major">
+          <div class="triad-name">MAIOR</div>
+          <div class="triad-notes" id="chord-major"></div>
+        </div>
+        <div class="triad-card" data-quality="minor">
+          <div class="triad-name">MENOR</div>
+          <div class="triad-notes" id="chord-minor"></div>
+        </div>
+        <div class="triad-card" data-quality="dim">
+          <div class="triad-name">DIM.</div>
+          <div class="triad-notes" id="chord-dim"></div>
+        </div>
+      </div>
+
+      <div class="field-label">VIZINHOS NO CÍRCULO</div>
+      <div class="neighbor-row">
+        <div class="neighbor-pill" id="neighbor-left"></div>
+        <div class="neighbor-pill" id="neighbor-right"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="keybed-unit raised">
+    <div class="keybed-header">
+      <div class="keybed-title">TECLADO · ACORDE SELECIONADO</div>
+      <div class="quality-tabs" id="quality-tabs"></div>
+    </div>
+    <div class="keyboard-scroll">
+      <svg id="keyboard" viewBox="0 0 560 170"></svg>
+    </div>
+  </div>
+
+  <div class="rules-unit raised">
+    <div class="rules-title">REGRAS · SEMITONS A PARTIR DA TÔNICA</div>
+    <div class="rules-grid" id="rules-grid"></div>
+  </div>
+
+  <div class="legend-strip">
+    <span><span class="dot" style="background:var(--orange);"></span> tonalidade / acorde selecionado</span>
+    <span><span class="dot" style="background:#3a2a18;"></span> vizinhos harmônicos (quinta acima/abaixo)</span>
+    <span>anel externo = maiores · anel interno = relativas menores</span>
+  </div>
+
+  <footer>ESTÚDIO DE TEORIA APLICADA — REFERÊNCIA PARA COMPOSIÇÃO E BEATS</footer>
+</div>
+
+<script>
+const NOTES = ["Do","Do#","Re","Re#","Mi","Fa","Fa#","Sol","Sol#","La","La#","Si"];
+const CIFRA = {"Do":"C","Do#":"C#","Re":"D","Re#":"D#","Mi":"E","Fa":"F","Fa#":"F#","Sol":"G","Sol#":"G#","La":"A","La#":"A#","Si":"B"};
+const SOLFEJO = {"Do":"Dó","Do#":"Dó#","Re":"Ré","Re#":"Ré#","Mi":"Mi","Fa":"Fá","Fa#":"Fá#","Sol":"Sol","Sol#":"Sol#","La":"Lá","La#":"Lá#","Si":"Si"};
+const FIFTHS_ORDER = ["Do","Sol","Re","La","Mi","Si","Fa#","Do#","Sol#","Re#","La#","Fa"];
+const MAJOR_PATTERN = ["tom","tom","semitom","tom","tom","tom","semitom"];
+const MINOR_PATTERN = ["tom","semitom","tom","tom","semitom","tom","tom"];
+
+const QUALITIES = [
+  { key:"major",  label:"Maior",         intervals:[0,4,7],     desc:"terça maior + terça menor" },
+  { key:"minor",  label:"Menor",         intervals:[0,3,7],     desc:"terça menor + terça maior" },
+  { key:"dim",    label:"Diminuto",      intervals:[0,3,6],     desc:"duas terças menores" },
+  { key:"maj7",   label:"Maior7",        intervals:[0,4,7,11],  desc:"maior + sétima maior" },
+  { key:"m7",     label:"Menor7",        intervals:[0,3,7,10],  desc:"menor + sétima menor" },
+  { key:"dom7",   label:"Dominante7",    intervals:[0,4,7,10],  desc:"maior + sétima menor" },
+  { key:"m7b5",   label:"Meio-dim m7b5", intervals:[0,3,6,10],  desc:"diminuto + sétima menor" },
+  { key:"dim7",   label:"Diminuto7",     intervals:[0,3,6,9],   desc:"três terças menores" },
+];
+function getQuality(key){ return QUALITIES.find(q=>q.key===key); }
+function stepsOf(intervals){
+  const steps=[];
+  for(let i=1;i<intervals.length;i++) steps.push(intervals[i]-intervals[i-1]);
+  return steps;
+}
+
+let currentQuality = "major";
+let currentNote = "Do";
+
+function idx(n){ return NOTES.indexOf(n); }
+function buildScale(root, pattern){
+  let i = idx(root), out=[root];
+  for(const s of pattern){ i = (i + (s==="tom"?2:1)) % 12; out.push(NOTES[i]); }
+  return out;
+}
+function relativeMinor(major){ return NOTES[(idx(major)+9)%12]; }
+function chordNotes(root, intervals){
+  const r = idx(root);
+  return intervals.map(iv => NOTES[(r+iv)%12]);
+}
+function cifraChip(note, withSolf){
+  return '<div class="chip">'+CIFRA[note]+(withSolf?'<span class="solf">'+SOLFEJO[note]+'</span>':'')+'</div>';
+}
+function cifraStr(list){ return list.map(n=>CIFRA[n]).join(" "); }
+
+/* ---------- WHEEL ---------- */
+function polar(r, angleDeg){
+  const a = (angleDeg-90)*Math.PI/180;
+  return {x:r*Math.cos(a), y:r*Math.sin(a)};
+}
+function wedgePath(rI,rO,a1,a2){
+  const p1=polar(rO,a1), p2=polar(rO,a2), p3=polar(rI,a2), p4=polar(rI,a1);
+  const large=(a2-a1)>180?1:0;
+  return ["M",p1.x,p1.y,"A",rO,rO,0,large,1,p2.x,p2.y,"L",p3.x,p3.y,"A",rI,rI,0,large,0,p4.x,p4.y,"Z"].join(" ");
+}
+function buildWheel(){
+  const svg = document.getElementById("wheel");
+  const n = FIFTHS_ORDER.length, step = 360/n;
+  const rOMax=215, rOMin=130, rIMax=130, rIMin=55;
+
+  FIFTHS_ORDER.forEach((note,i)=>{
+    const a1=i*step-step/2, a2=a1+step, mid=a1+step/2;
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.setAttribute("class","wedge-group");
+    g.setAttribute("data-note", note);
+    g.addEventListener("click", ()=>selectNote(note));
+
+    const outer = document.createElementNS("http://www.w3.org/2000/svg","path");
+    outer.setAttribute("class","wedge");
+    outer.setAttribute("d", wedgePath(rOMin,rOMax,a1,a2));
+    g.appendChild(outer);
+
+    const inner = document.createElementNS("http://www.w3.org/2000/svg","path");
+    inner.setAttribute("class","wedge wedge-inner");
+    inner.setAttribute("d", wedgePath(rIMin,rIMax,a1,a2));
+    g.appendChild(inner);
+
+    const pOuter = polar((rOMin+rOMax)/2, mid);
+    const lOuter = document.createElementNS("http://www.w3.org/2000/svg","text");
+    lOuter.setAttribute("class","wedge-label major");
+    lOuter.setAttribute("x", pOuter.x); lOuter.setAttribute("y", pOuter.y);
+    lOuter.textContent = CIFRA[note];
+    g.appendChild(lOuter);
+
+    const relMin = relativeMinor(note);
+    const pInner = polar((rIMin+rIMax)/2, mid);
+    const lInner = document.createElementNS("http://www.w3.org/2000/svg","text");
+    lInner.setAttribute("class","wedge-label minor");
+    lInner.setAttribute("x", pInner.x); lInner.setAttribute("y", pInner.y);
+    lInner.textContent = CIFRA[relMin]+"m";
+    g.appendChild(lInner);
+
+    svg.appendChild(g);
+  });
+
+  const ring = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  ring.setAttribute("class","center-ring");
+  ring.setAttribute("cx",0); ring.setAttribute("cy",0); ring.setAttribute("r",55);
+  svg.appendChild(ring);
+
+  const ctext = document.createElementNS("http://www.w3.org/2000/svg","text");
+  ctext.setAttribute("class","center-text");
+  ctext.setAttribute("x",0); ctext.setAttribute("y",0);
+  ctext.textContent = "CQ-12";
+  svg.appendChild(ctext);
+}
+
+/* ---------- KEYBOARD ---------- */
+const WHITE_W = 40, WHITE_H = 150, BLACK_W = 24, BLACK_H = 92;
+const WHITE_MAP = {0:0,2:1,4:2,5:3,7:4,9:5,11:6};
+const BLACK_AFTER = {1:0,3:1,6:3,8:4,10:5};
+
+function buildKeyboardBase(){
+  const svg = document.getElementById("keyboard");
+  svg.setAttribute("viewBox", "0 0 " + (14*WHITE_W) + " " + (WHITE_H+20));
+  svg.innerHTML = "";
+  for(let semi=0; semi<24; semi++){
+    const oct = Math.floor(semi/12), inOct = semi%12;
+    if(WHITE_MAP.hasOwnProperty(inOct)){
+      const gi = oct*7 + WHITE_MAP[inOct];
+      const rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x", gi*WHITE_W); rect.setAttribute("y", 0);
+      rect.setAttribute("width", WHITE_W); rect.setAttribute("height", WHITE_H);
+      rect.setAttribute("rx", 3);
+      rect.setAttribute("fill", "#cfc9bc");
+      rect.setAttribute("stroke", "#6b6659");
+      rect.setAttribute("stroke-width", "1.2");
+      rect.setAttribute("data-semi", semi);
+      rect.setAttribute("class","pkey pkey-white");
+      svg.appendChild(rect);
+    }
+  }
+  for(let semi=0; semi<24; semi++){
+    const oct = Math.floor(semi/12), inOct = semi%12;
+    if(BLACK_AFTER.hasOwnProperty(inOct)){
+      const gi = oct*7 + BLACK_AFTER[inOct];
+      const x = (gi+1)*WHITE_W - BLACK_W/2;
+      const rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x", x); rect.setAttribute("y", 0);
+      rect.setAttribute("width", BLACK_W); rect.setAttribute("height", BLACK_H);
+      rect.setAttribute("rx", 2);
+      rect.setAttribute("fill", "#161615");
+      rect.setAttribute("stroke", "#000");
+      rect.setAttribute("stroke-width", "1");
+      rect.setAttribute("data-semi", semi);
+      rect.setAttribute("class","pkey pkey-black");
+      svg.appendChild(rect);
+    }
+  }
+}
+function keyCenterX(semi){
+  const oct = Math.floor(semi/12), inOct = semi%12;
+  if(WHITE_MAP.hasOwnProperty(inOct)){
+    const gi = oct*7 + WHITE_MAP[inOct];
+    return gi*WHITE_W + WHITE_W/2;
+  } else {
+    const gi = oct*7 + BLACK_AFTER[inOct];
+    return (gi+1)*WHITE_W;
+  }
+}
+function isBlackSemi(semi){ return BLACK_AFTER.hasOwnProperty(semi%12); }
+
+function highlightKeyboard(rootNote, qualityKey){
+  const svg = document.getElementById("keyboard");
+  svg.querySelectorAll(".pkey").forEach(k=>{
+    k.setAttribute("fill", k.classList.contains("pkey-white") ? "#cfc9bc" : "#161615");
+  });
+  svg.querySelectorAll(".key-dot, .key-label").forEach(el=>el.remove());
+
+  const q = getQuality(qualityKey);
+  const rootPc = idx(rootNote);
+  const semis = q.intervals.map(iv=>rootPc+iv);
+  const notesAbs = semis.map(s=>NOTES[s%12]);
+
+  semis.forEach((semi,order)=>{
+    const key = svg.querySelector('[data-semi="'+semi+'"]');
+    const isRoot = order===0;
+    if(key) key.setAttribute("fill", isRoot ? "#ff5a2b" : "#e2823f");
+
+    const cx = keyCenterX(semi);
+    const black = isBlackSemi(semi);
+    const cy = black ? BLACK_H - 18 : WHITE_H - 22;
+
+    const dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    dot.setAttribute("class","key-dot");
+    dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("r", 9);
+    dot.setAttribute("fill", isRoot ? "#6e2a0d" : "#3d1f08");
+    svg.appendChild(dot);
+
+    const label = document.createElementNS("http://www.w3.org/2000/svg","text");
+    label.setAttribute("class","key-label");
+    label.setAttribute("x", cx); label.setAttribute("y", cy+1);
+    label.setAttribute("text-anchor","middle");
+    label.setAttribute("dominant-baseline","middle");
+    label.setAttribute("font-family","'JetBrains Mono', monospace");
+    label.setAttribute("font-size","10");
+    label.setAttribute("font-weight","700");
+    label.setAttribute("fill", "#fff");
+    label.textContent = CIFRA[notesAbs[order]];
+    svg.appendChild(label);
+  });
+
+  document.getElementById("kind-tag").textContent = q.label.toUpperCase();
+}
+
+/* ---------- QUALITY TABS ---------- */
+function buildQualityTabs(){
+  const wrap = document.getElementById("quality-tabs");
+  wrap.innerHTML = "";
+  QUALITIES.forEach(q=>{
+    const tab = document.createElement("div");
+    tab.className = "qtab" + (q.key===currentQuality ? " active" : "");
+    tab.setAttribute("data-quality", q.key);
+    tab.textContent = q.label;
+    tab.addEventListener("click", ()=>setQuality(q.key));
+    wrap.appendChild(tab);
+  });
+}
+function setQuality(qualityKey){
+  currentQuality = qualityKey;
+  document.querySelectorAll(".qtab").forEach(t=>{
+    t.classList.toggle("active", t.getAttribute("data-quality")===qualityKey);
+  });
+  document.querySelectorAll(".triad-card").forEach(t=>{
+    t.classList.toggle("active", t.getAttribute("data-quality")===qualityKey);
+  });
+  document.querySelectorAll(".rule-row").forEach(r=>{
+    r.classList.toggle("active", r.getAttribute("data-quality")===qualityKey);
+  });
+  highlightKeyboard(currentNote, qualityKey);
+}
+
+/* ---------- RULES PANEL ---------- */
+function buildRules(){
+  const grid = document.getElementById("rules-grid");
+  grid.innerHTML = "";
+  QUALITIES.forEach(q=>{
+    const steps = stepsOf(q.intervals);
+    const row = document.createElement("div");
+    row.className = "rule-row" + (q.key===currentQuality ? " active" : "");
+    row.setAttribute("data-quality", q.key);
+    row.innerHTML =
+      '<span class="rule-name">'+q.label+'</span><span class="rule-formula">'+steps.join(" + ")+' semitons</span>';
+    row.title = q.desc;
+    row.addEventListener("click", ()=>setQuality(q.key));
+    grid.appendChild(row);
+  });
+}
+
+/* ---------- PANEL / SELECT NOTE ---------- */
+function selectNote(note){
+  currentNote = note;
+  document.getElementById("tonic-cifra").textContent = CIFRA[note];
+  document.getElementById("tonic-solf").textContent = SOLFEJO[note];
+  document.getElementById("screen-clock").textContent = CIFRA[note] + " MAJ";
+
+  const maj = buildScale(note, MAJOR_PATTERN);
+  const relRoot = relativeMinor(note);
+  const min = buildScale(relRoot, MINOR_PATTERN);
+
+  document.getElementById("scale-major").innerHTML = maj.map(n=>cifraChip(n,true)).join("");
+  document.getElementById("scale-minor").innerHTML = min.map(n=>cifraChip(n,true)).join("");
+
+  document.getElementById("chord-major").textContent = cifraStr(chordNotes(note,[0,4,7]));
+  document.getElementById("chord-minor").textContent = cifraStr(chordNotes(note,[0,3,7]));
+  document.getElementById("chord-dim").textContent = cifraStr(chordNotes(note,[0,3,6]));
+
+  const fi = FIFTHS_ORDER.indexOf(note);
+  const left = FIFTHS_ORDER[(fi-1+12)%12];
+  const right = FIFTHS_ORDER[(fi+1)%12];
+  document.getElementById("neighbor-left").textContent = CIFRA[left] + " · quinta abaixo";
+  document.getElementById("neighbor-right").textContent = CIFRA[right] + " · quinta acima";
+
+  document.querySelectorAll(".wedge-group").forEach(g=>{
+    g.classList.remove("selected","neighbor");
+    const n = g.getAttribute("data-note");
+    if(n===note) g.classList.add("selected");
+    else if(n===left || n===right) g.classList.add("neighbor");
+  });
+
+  highlightKeyboard(note, currentQuality);
+}
+
+document.querySelectorAll(".triad-card").forEach(el=>{
+  el.addEventListener("click", ()=> setQuality(el.getAttribute("data-quality")));
+});
+
+buildWheel();
+buildKeyboardBase();
+buildQualityTabs();
+buildRules();
+selectNote("Do");
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").catch(err=>console.warn("SW falhou:", err));
+  });
+}
+</script>
+
+</body>
+</html>
