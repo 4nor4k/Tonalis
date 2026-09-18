@@ -1,4 +1,4 @@
-const CACHE_NAME = "tonalis-v1";
+const CACHE_NAME = "tonalis-v2";
 const ASSETS = [
   "./",
   "./index.html",

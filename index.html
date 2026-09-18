@@ -38,6 +38,19 @@
 
   *{box-sizing:border-box;}
   html,body{ margin:0; }
+  /* tira o retangulo cinza de toque e a selecao de texto no mobile,
+     mantendo o painel com cara de "aparelho" em vez de pagina de texto */
+  html{ -webkit-tap-highlight-color: transparent; }
+  body, .device, .wedge-group, .triad-card, .qtab, .rule-row,
+  .chip, .neighbor-pill, .brand, .nameplate, .readout-header,
+  .field-label, .keybed-title, .screen-label, .legend-strip, footer, svg, .pkey{
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
   body{
     min-height:100vh;
     background:var(--bg);
@@ -115,6 +128,7 @@
   .wheel-wrap{ width:100%; aspect-ratio:1/1; max-width:400px; margin:0 auto; }
   svg{ width:100%; height:100%; overflow:visible; display:block; }
 
+  .wedge-group, .triad-card, .qtab, .rule-row{ touch-action: manipulation; }
   .wedge{ cursor:pointer; fill:#181a1d; stroke:#0b0c0e; stroke-width:1.2; transition:fill 0.15s ease; }
   .wedge-inner{ fill:#141517; }
   .wedge-group:hover .wedge{ fill:#232529; }
