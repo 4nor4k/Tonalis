@@ -43,7 +43,9 @@
   html{ -webkit-tap-highlight-color: transparent; }
   body, .device, .wedge-group, .triad-card, .qtab, .rule-row,
   .chip, .neighbor-pill, .brand, .nameplate, .readout-header,
-  .field-label, .keybed-title, .screen-label, .legend-strip, footer, svg, .pkey{
+  .field-label, .keybed-title, .screen-label, .legend-strip, footer, svg, .pkey,
+  .prog-card, .prog-chip, .prog-play, .progressions-title, .progressions-sub,
+  .prog-style, .prog-roman, .prog-vibe, .prog-select-btn, .prog-select-option{
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -128,7 +130,7 @@
   .wheel-wrap{ width:100%; aspect-ratio:1/1; max-width:400px; margin:0 auto; }
   svg{ width:100%; height:100%; overflow:visible; display:block; }
 
-  .wedge-group, .triad-card, .qtab, .rule-row{ touch-action: manipulation; }
+  .wedge-group, .triad-card, .qtab, .rule-row, .prog-card, .prog-play{ touch-action: manipulation; }
   .wedge{ cursor:pointer; fill:#181a1d; stroke:#0b0c0e; stroke-width:1.2; transition:fill 0.15s ease; }
   .wedge-inner{ fill:#141517; }
   .wedge-group:hover .wedge{ fill:#232529; }
@@ -228,6 +230,80 @@
   .rule-formula{ font-family:var(--font-mono); font-size:0.78rem; color:var(--text-mute); white-space:nowrap; }
   .rule-row.active .rule-formula{ color:var(--orange); text-shadow:0 0 6px var(--orange-glow); }
 
+  /* ---- progressoes por estilo ---- */
+  .progressions-unit{ margin:20px 0 0; padding:20px 24px 22px; }
+  .progressions-header{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .progressions-title{ font-family:var(--font-mono); font-size:0.72rem; letter-spacing:1.5px; color:var(--text-dim); }
+  .progressions-sub{ font-family:var(--font-mono); font-size:0.68rem; color:var(--text-dim); }
+  .progressions-body{ display:flex; flex-direction:column; gap:14px; }
+
+  /* dropdown proprio (nao usa <select> nativo, pra poder estilizar 100% mesmo no mobile) */
+  .prog-select-wrap{ position:relative; touch-action:manipulation; }
+  .prog-select-btn{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    appearance:none; -webkit-appearance:none; border:none; border-radius:12px;
+    padding:12px 14px;
+    background:var(--panel); color:var(--text);
+    box-shadow:inset 3px 3px 7px rgba(0,0,0,0.65), inset -2px -2px 6px rgba(255,255,255,0.04);
+    font-family:var(--font-display); font-weight:700; font-size:0.98rem;
+    cursor:pointer;
+  }
+  .prog-select-btn:focus-visible{ outline:2px solid var(--orange-deep); outline-offset:2px; }
+  .prog-select-chevron{
+    color:var(--orange); font-size:0.85rem; flex-shrink:0;
+    transition:transform 0.15s ease;
+  }
+  .prog-select-wrap.open .prog-select-chevron{ transform:rotate(180deg); }
+
+  .prog-select-list{
+    position:absolute; left:0; right:0; top:calc(100% + 8px); z-index:30;
+    list-style:none; margin:0; padding:6px;
+    background:var(--panel-hi); border-radius:14px;
+    box-shadow:10px 10px 22px var(--shadow-dark), -8px -8px 18px var(--shadow-light), 0 0 0 1px rgba(0,0,0,0.5);
+    max-height:280px; overflow-y:auto;
+  }
+  .prog-select-list[hidden]{ display:none; }
+  .prog-select-option{
+    padding:10px 12px; border-radius:9px; cursor:pointer;
+    font-family:var(--font-display); font-size:0.92rem; color:var(--text);
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    transition:background 0.1s ease;
+  }
+  .prog-select-option:hover, .prog-select-option.highlighted{ background:var(--panel); }
+  .prog-select-option.active{ color:var(--orange); }
+  .prog-select-option.active .prog-select-dot{
+    display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:var(--orange); box-shadow:0 0 6px var(--orange-glow); flex-shrink:0;
+  }
+  .prog-card{
+    background:var(--panel); border-radius:14px; padding:14px 16px;
+    box-shadow:4px 4px 10px var(--shadow-dark), -3px -3px 10px var(--shadow-light);
+    transition:box-shadow 0.15s ease;
+  }
+  .prog-card.playing{ box-shadow:0 0 0 1px var(--orange-deep), 4px 4px 10px var(--shadow-dark), -3px -3px 10px var(--shadow-light); }
+  .prog-card-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .prog-style{ font-weight:700; font-size:0.95rem; color:var(--text); }
+  .prog-roman{ font-family:var(--font-mono); font-size:0.75rem; color:var(--text-mute); margin-top:2px; }
+  .prog-play{
+    flex-shrink:0; width:34px; height:34px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--panel-hi); color:var(--orange); font-size:0.8rem;
+    box-shadow:3px 3px 7px var(--shadow-dark), -2px -2px 7px var(--shadow-light);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .prog-card.playing .prog-play{ box-shadow:inset 2px 2px 5px rgba(0,0,0,.6), inset -2px -2px 5px rgba(255,255,255,.04); }
+  .prog-vibe{ font-size:0.78rem; color:var(--text-mute); margin-top:8px; line-height:1.4; }
+  .prog-chip-row{ display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-top:10px; }
+  .prog-chip{
+    background:var(--panel-hi); border-radius:8px; padding:4px 8px;
+    display:flex; flex-direction:column; align-items:center; line-height:1.1;
+    font-family:var(--font-mono); transition:box-shadow .12s ease;
+  }
+  .prog-chip .prog-rn{ font-size:0.58rem; color:var(--text-dim); }
+  .prog-chip .prog-note{ font-size:0.85rem; font-weight:700; color:var(--text); }
+  .prog-chip.active{ box-shadow:0 0 0 1px var(--orange); }
+  .prog-chip.active .prog-note{ color:var(--orange); text-shadow:0 0 6px var(--orange-glow); }
+  .prog-arrow{ color:var(--text-dim); font-size:0.72rem; }
+
   .legend-strip{
     margin-top:22px; padding-top:18px; display:flex; gap:22px; flex-wrap:wrap;
     font-family:var(--font-mono); font-size:0.73rem; color:var(--text-mute);
@@ -254,7 +330,7 @@
     <div class="led-row"><span class="led"></span> STANDBY / READY</div>
   </div>
 
-  <p class="subtitle">Selecione uma tonalidade no visor para consultar escala, acordes (com e sem sétima) e o desenho no teclado.</p>
+  <p class="subtitle">Selecione uma tonalidade no visor para consultar escala, acordes (com e sem sétima), o desenho no teclado e progressões prontas por estilo.</p>
 
   <div class="bay">
     <div class="screen-unit recessed">
@@ -310,6 +386,24 @@
     </div>
   </div>
 
+  <div class="progressions-unit raised">
+    <div class="progressions-header">
+      <div class="progressions-title">PROGRESSÕES · POR ESTILO</div>
+      <div class="progressions-sub">toque ▶ para ouvir na tonalidade selecionada</div>
+    </div>
+    <div class="progressions-body">
+      <div class="prog-select-wrap" id="progressions-select-wrap">
+        <button type="button" class="prog-select-btn" id="progressions-select-btn"
+                aria-haspopup="listbox" aria-expanded="false">
+          <span id="progressions-select-label">Pop / Rádio</span>
+          <span class="prog-select-chevron">▾</span>
+        </button>
+        <ul class="prog-select-list" id="progressions-select-list" role="listbox" hidden></ul>
+      </div>
+      <div id="progressions-grid"></div>
+    </div>
+  </div>
+
   <div class="rules-unit raised">
     <div class="rules-title">REGRAS · SEMITONS A PARTIR DA TÔNICA</div>
     <div class="rules-grid" id="rules-grid"></div>
@@ -333,14 +427,70 @@ const MAJOR_PATTERN = ["tom","tom","semitom","tom","tom","tom","semitom"];
 const MINOR_PATTERN = ["tom","semitom","tom","tom","semitom","tom","tom"];
 
 const QUALITIES = [
-  { key:"major",  label:"Maior",         intervals:[0,4,7],     desc:"terça maior + terça menor" },
-  { key:"minor",  label:"Menor",         intervals:[0,3,7],     desc:"terça menor + terça maior" },
-  { key:"dim",    label:"Diminuto",      intervals:[0,3,6],     desc:"duas terças menores" },
-  { key:"maj7",   label:"Maior7",        intervals:[0,4,7,11],  desc:"maior + sétima maior" },
-  { key:"m7",     label:"Menor7",        intervals:[0,3,7,10],  desc:"menor + sétima menor" },
-  { key:"dom7",   label:"Dominante7",    intervals:[0,4,7,10],  desc:"maior + sétima menor" },
-  { key:"m7b5",   label:"Meio-dim m7b5", intervals:[0,3,6,10],  desc:"diminuto + sétima menor" },
-  { key:"dim7",   label:"Diminuto7",     intervals:[0,3,6,9],   desc:"três terças menores" },
+  { key:"major",  label:"Maior",         intervals:[0,4,7],     desc:"terça maior + terça menor",   suffix:"" },
+  { key:"minor",  label:"Menor",         intervals:[0,3,7],     desc:"terça menor + terça maior",   suffix:"m" },
+  { key:"dim",    label:"Diminuto",      intervals:[0,3,6],     desc:"duas terças menores",         suffix:"dim" },
+  { key:"maj7",   label:"Maior7",        intervals:[0,4,7,11],  desc:"maior + sétima maior",        suffix:"maj7" },
+  { key:"m7",     label:"Menor7",        intervals:[0,3,7,10],  desc:"menor + sétima menor",        suffix:"m7" },
+  { key:"dom7",   label:"Dominante7",    intervals:[0,4,7,10],  desc:"maior + sétima menor",        suffix:"7" },
+  { key:"m7b5",   label:"Meio-dim m7b5", intervals:[0,3,6,10],  desc:"diminuto + sétima menor",     suffix:"m7b5" },
+  { key:"dim7",   label:"Diminuto7",     intervals:[0,3,6,9],   desc:"três terças menores",         suffix:"dim7" },
+  { key:"maj9",   label:"Maior9",        intervals:[0,4,7,11,14], desc:"maj7 + nona (2ª uma oitava acima)", suffix:"maj9" },
+  { key:"m9",     label:"Menor9",        intervals:[0,3,7,10,14], desc:"m7 + nona (2ª uma oitava acima)",   suffix:"m9" },
+  { key:"dom9",   label:"Dominante9",    intervals:[0,4,7,10,14], desc:"dom7 + nona (2ª uma oitava acima)", suffix:"9" },
+];
+
+/* progressoes: semi = semitons a partir da tonica selecionada (currentNote).
+   rn = numeral romano so para exibicao (nao recalculado). */
+const PROGRESSIONS = [
+  { key:"pop", style:"Pop / Rádio", roman:"I – V – vi – IV",
+    vibe:"Direta e otimista — a progressão mais usada em hits pop.",
+    chords:[ {semi:0,q:"major",rn:"I"}, {semi:7,q:"major",rn:"V"}, {semi:9,q:"minor",rn:"vi"}, {semi:5,q:"major",rn:"IV"} ] },
+  { key:"balada", style:"Balada / Pop triste", roman:"vi – IV – I – V",
+    vibe:"Os mesmos quatro acordes, começando pelo relativo menor — clima mais introspectivo.",
+    chords:[ {semi:9,q:"minor",rn:"vi"}, {semi:5,q:"major",rn:"IV"}, {semi:0,q:"major",rn:"I"}, {semi:7,q:"major",rn:"V"} ] },
+  { key:"trap", style:"Trap", roman:"i – VI – VII",
+    vibe:"Menor natural com tríades simples, clima urbano e pesado — base clássica de trap.",
+    chords:[ {semi:0,q:"minor",rn:"i"}, {semi:8,q:"major",rn:"VI"}, {semi:10,q:"major",rn:"VII"} ] },
+  { key:"trapdark", style:"Trap sombrio", roman:"i – VI – III – VII",
+    vibe:"Variação mais tensa da anterior, comum em drill e trap mais pesado.",
+    chords:[ {semi:0,q:"minor",rn:"i"}, {semi:8,q:"major",rn:"VI"}, {semi:3,q:"major",rn:"III"}, {semi:10,q:"major",rn:"VII"} ] },
+  { key:"lofi", style:"Lo-fi (jazzy)", roman:"im9 – ivm9 – VIImaj9 – IIImaj7",
+    vibe:"Acordes com sétima e nona por cima do loop menor — o clima \"chuva na janela\" do lo-fi hip hop.",
+    chords:[ {semi:0,q:"m9",rn:"im9"}, {semi:5,q:"m9",rn:"ivm9"}, {semi:10,q:"maj9",rn:"VIImaj9"}, {semi:3,q:"maj7",rn:"IIImaj7"} ] },
+  { key:"neosoul", style:"R&B / Neo-soul", roman:"ii7 – V7 – Imaj7",
+    vibe:"Cadência jazzística suave, clima sofisticado de R&B e neo-soul.",
+    chords:[ {semi:2,q:"m7",rn:"ii7"}, {semi:7,q:"dom7",rn:"V7"}, {semi:0,q:"maj7",rn:"Imaj7"} ] },
+  { key:"blues", style:"Blues", roman:"I7 – IV7 – V7 – I7",
+    vibe:"As três dominantes clássicas do blues e de boa parte do rock raiz.",
+    chords:[ {semi:0,q:"dom7",rn:"I7"}, {semi:5,q:"dom7",rn:"IV7"}, {semi:7,q:"dom7",rn:"V7"}, {semi:0,q:"dom7",rn:"I7"} ] },
+  { key:"house", style:"House / EDM (menor)", roman:"i – VII – VI – VII",
+    vibe:"Loop hipnótico de quatro compassos, ótimo para builds e drops eletrônicos.",
+    chords:[ {semi:0,q:"minor",rn:"i"}, {semi:10,q:"major",rn:"VII"}, {semi:8,q:"major",rn:"VI"}, {semi:10,q:"major",rn:"VII"} ] },
+  { key:"rock", style:"Rock / Anthem", roman:"I – bVII – IV",
+    vibe:"Peso mixolídio, usado em refrões de rock e em stadium anthems.",
+    chords:[ {semi:0,q:"major",rn:"I"}, {semi:10,q:"major",rn:"bVII"}, {semi:5,q:"major",rn:"IV"} ] },
+  { key:"jazz", style:"Jazz · 1-6-2-5", roman:"Imaj7 – vi7 – ii7 – V7",
+    vibe:"O turnaround clássico do jazz, também muito usado em MPB e bossa nova.",
+    chords:[ {semi:0,q:"maj7",rn:"Imaj7"}, {semi:9,q:"m7",rn:"vi7"}, {semi:2,q:"m7",rn:"ii7"}, {semi:7,q:"dom7",rn:"V7"} ] },
+  { key:"reggaeton", style:"Reggaeton / Dembow", roman:"i – VII – VI – V",
+    vibe:"Levada latina, menor com uma quinta maior \"emprestada\" pra dar aquele empurrão característico.",
+    chords:[ {semi:0,q:"minor",rn:"i"}, {semi:10,q:"major",rn:"VII"}, {semi:8,q:"major",rn:"VI"}, {semi:7,q:"major",rn:"V"} ] },
+  { key:"afrobeats", style:"Afrobeats", roman:"I – IV – vi – V",
+    vibe:"Maior, groove solar e repetitivo — base comum em afrobeats e amapiano.",
+    chords:[ {semi:0,q:"major",rn:"I"}, {semi:5,q:"major",rn:"IV"}, {semi:9,q:"minor",rn:"vi"}, {semi:7,q:"major",rn:"V"} ] },
+  { key:"boombap", style:"Boom Bap (loop)", roman:"im7 – ivm7",
+    vibe:"Loop curto de duas sétimas menores, clima de sample poeirento de hip-hop dos anos 90.",
+    chords:[ {semi:0,q:"m7",rn:"im7"}, {semi:5,q:"m7",rn:"ivm7"} ] },
+  { key:"synthwave", style:"Synthwave / Retrowave", roman:"i – v – VI – VII",
+    vibe:"Menor dramático com a quinta também menor — clima de trilha synthwave dos anos 80.",
+    chords:[ {semi:0,q:"minor",rn:"i"}, {semi:7,q:"minor",rn:"v"}, {semi:8,q:"major",rn:"VI"}, {semi:10,q:"major",rn:"VII"} ] },
+  { key:"funk", style:"Funk / Disco", roman:"I9 – IV9",
+    vibe:"Vamp de duas nonas dominantes — feito pra groove repetir e a linha de baixo brilhar.",
+    chords:[ {semi:0,q:"dom9",rn:"I9"}, {semi:5,q:"dom9",rn:"IV9"} ] },
+  { key:"cinematic", style:"Cinematic / Trilha", roman:"i – iv – bVII – III",
+    vibe:"Progressão ampla e épica, comum em trailers e trilhas orquestrais modernas.",
+    chords:[ {semi:0,q:"minor",rn:"i"}, {semi:5,q:"minor",rn:"iv"}, {semi:10,q:"major",rn:"bVII"}, {semi:3,q:"major",rn:"III"} ] },
 ];
 function getQuality(key){ return QUALITIES.find(q=>q.key===key); }
 function stepsOf(intervals){
@@ -497,7 +647,10 @@ function highlightKeyboard(rootNote, qualityKey){
   const semis = q.intervals.map(iv=>rootPc+iv);
   const notesAbs = semis.map(s=>NOTES[s%12]);
 
-  semis.forEach((semi,order)=>{
+  semis.forEach((semiRaw,order)=>{
+    // teclado visivel cobre so 2 oitavas (0-23); acordes com 9a podem passar disso,
+    // entao desce uma oitava soh pra exibicao, mantendo a classe de nota correta
+    const semi = semiRaw > 23 ? semiRaw - 12 : semiRaw;
     const key = svg.querySelector('[data-semi="'+semi+'"]');
     const isRoot = order===0;
     if(key) key.setAttribute("fill", isRoot ? "#ff5a2b" : "#e2823f");
@@ -542,6 +695,7 @@ function buildQualityTabs(){
   });
 }
 function setQuality(qualityKey){
+  stopProgression();
   currentQuality = qualityKey;
   document.querySelectorAll(".qtab").forEach(t=>{
     t.classList.toggle("active", t.getAttribute("data-quality")===qualityKey);
@@ -572,8 +726,184 @@ function buildRules(){
   });
 }
 
+/* ---------- PROGRESSIONS + AUDIO ---------- */
+let audioCtx = null;
+let progressionTimer = null;
+let currentPlayingCard = null;
+
+function ensureAudioCtx(){
+  if(!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AC();
+  }
+  if(audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+function chordRootNoteFromSemi(baseNote, semi){
+  return NOTES[(idx(baseNote)+semi)%12];
+}
+
+function chordFrequencies(rootNote, qualityKey){
+  const q = getQuality(qualityKey);
+  const rootPc = idx(rootNote);
+  // registro base proximo de C3, mesma logica usada no teclado visual
+  return q.intervals.map(iv => 440 * Math.pow(2, ((48 + rootPc + iv) - 69) / 12));
+}
+
+function playChordSound(freqs, duration){
+  const ctx = ensureAudioCtx();
+  const now = ctx.currentTime;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.0001, now);
+  master.gain.exponentialRampToValueAtTime(0.16, now + 0.04);
+  master.gain.exponentialRampToValueAtTime(0.10, now + duration * 0.6);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+  master.connect(ctx.destination);
+
+  freqs.forEach(freq=>{
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(freq, now);
+    osc.connect(master);
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
+  });
+}
+
+function stopProgression(){
+  if(progressionTimer){ clearTimeout(progressionTimer); progressionTimer = null; }
+  if(currentPlayingCard){
+    currentPlayingCard.classList.remove("playing");
+    const btn = currentPlayingCard.querySelector(".prog-play");
+    if(btn) btn.textContent = "▶";
+    currentPlayingCard.querySelectorAll(".prog-chip").forEach(c=>c.classList.remove("active"));
+    currentPlayingCard = null;
+  }
+  highlightKeyboard(currentNote, currentQuality);
+}
+
+function playProgression(prog, card){
+  if(currentPlayingCard === card){ stopProgression(); return; }
+  stopProgression();
+  currentPlayingCard = card;
+  card.classList.add("playing");
+  const btn = card.querySelector(".prog-play");
+  if(btn) btn.textContent = "■";
+
+  const chordDuration = 1.1;
+  const stepMs = 1250;
+  let i = 0;
+
+  function step(){
+    if(i >= prog.chords.length){ stopProgression(); return; }
+    const c = prog.chords[i];
+    const rootNote = chordRootNoteFromSemi(currentNote, c.semi);
+    const freqs = chordFrequencies(rootNote, c.q);
+    playChordSound(freqs, chordDuration);
+    highlightKeyboard(rootNote, c.q);
+    card.querySelectorAll(".prog-chip").forEach((chip, ci)=> chip.classList.toggle("active", ci===i));
+    i++;
+    progressionTimer = setTimeout(step, stepMs);
+  }
+  step();
+}
+
+let currentProgressionKey = PROGRESSIONS[0].key;
+
+function populateProgressionSelect(){
+  const wrap = document.getElementById("progressions-select-wrap");
+  const btn = document.getElementById("progressions-select-btn");
+  const label = document.getElementById("progressions-select-label");
+  const list = document.getElementById("progressions-select-list");
+
+  list.innerHTML = PROGRESSIONS.map(prog=>
+    '<li class="prog-select-option" role="option" data-key="'+prog.key+'">'+
+      '<span>'+prog.style+'</span><span class="prog-select-dot"></span>'+
+    '</li>'
+  ).join("");
+
+  function updateActive(){
+    const prog = PROGRESSIONS.find(p=>p.key===currentProgressionKey) || PROGRESSIONS[0];
+    label.textContent = prog.style;
+    list.querySelectorAll(".prog-select-option").forEach(opt=>{
+      opt.classList.toggle("active", opt.getAttribute("data-key")===currentProgressionKey);
+    });
+  }
+
+  function openList(){
+    list.hidden = false;
+    wrap.classList.add("open");
+    btn.setAttribute("aria-expanded","true");
+  }
+  function closeList(){
+    list.hidden = true;
+    wrap.classList.remove("open");
+    btn.setAttribute("aria-expanded","false");
+  }
+
+  btn.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    if(list.hidden) openList(); else closeList();
+  });
+
+  list.addEventListener("click", (e)=>{
+    const li = e.target.closest(".prog-select-option");
+    if(!li) return;
+    currentProgressionKey = li.getAttribute("data-key");
+    updateActive();
+    renderCurrentProgression();
+    closeList();
+  });
+
+  document.addEventListener("click", (e)=>{
+    if(!wrap.contains(e.target)) closeList();
+  });
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") closeList();
+  });
+
+  updateActive();
+}
+
+function renderCurrentProgression(){
+  const grid = document.getElementById("progressions-grid");
+  grid.innerHTML = "";
+  const prog = PROGRESSIONS.find(p=>p.key===currentProgressionKey) || PROGRESSIONS[0];
+
+  const card = document.createElement("div");
+  card.className = "prog-card";
+  card.setAttribute("data-key", prog.key);
+
+  const chipsHtml = prog.chords.map(c=>{
+    const rootNote = chordRootNoteFromSemi(currentNote, c.semi);
+    const q = getQuality(c.q);
+    return '<div class="prog-chip"><span class="prog-rn">'+c.rn+'</span><span class="prog-note">'+CIFRA[rootNote]+q.suffix+'</span></div>';
+  }).join('<span class="prog-arrow">→</span>');
+
+  card.innerHTML =
+    '<div class="prog-card-header">'+
+      '<div><div class="prog-style">'+prog.style+'</div><div class="prog-roman">'+prog.roman+'</div></div>'+
+      '<button class="prog-play" type="button" aria-label="Tocar progressão">▶</button>'+
+    '</div>'+
+    '<div class="prog-vibe">'+prog.vibe+'</div>'+
+    '<div class="prog-chip-row">'+chipsHtml+'</div>';
+
+  card.querySelector(".prog-play").addEventListener("click", (e)=>{
+    e.stopPropagation();
+    playProgression(prog, card);
+  });
+
+  grid.appendChild(card);
+}
+
+function buildProgressions(){
+  renderCurrentProgression();
+}
+
 /* ---------- PANEL / SELECT NOTE ---------- */
 function selectNote(note){
+  stopProgression();
   currentNote = note;
   document.getElementById("tonic-cifra").textContent = CIFRA[note];
   document.getElementById("tonic-solf").textContent = SOLFEJO[note];
@@ -604,6 +934,7 @@ function selectNote(note){
   });
 
   highlightKeyboard(note, currentQuality);
+  buildProgressions();
 }
 
 document.querySelectorAll(".triad-card").forEach(el=>{
@@ -614,6 +945,7 @@ buildWheel();
 buildKeyboardBase();
 buildQualityTabs();
 buildRules();
+populateProgressionSelect();
 selectNote("Do");
 
 if("serviceWorker" in navigator){
