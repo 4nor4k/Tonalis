@@ -1,7 +1,7 @@
 {
-  "name": "Tonalis — Círculo de Quintas",
+  "name": "Tonalis",
   "short_name": "Tonalis",
-  "description": "Consulta interativa de escalas, acordes (com sétimas) e círculo de quintas, com visualização no teclado, para composição musical.",
+  "description": "Painel de consulta rápida de escalas, acordes e progressões musicais, com visualização no teclado, para composição e produção de beats.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

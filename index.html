@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonalis — Círculo de Quintas</title>
-<meta name="description" content="Consulta interativa de escalas, acordes e círculo de quintas para composição musical.">
+<title>Tonalis</title>
+<meta name="description" content="Painel de consulta rápida de escalas, acordes e progressões para composição musical.">
 <meta name="theme-color" content="#1c1d20">
 
 <link rel="manifest" href="manifest.json">
@@ -42,7 +42,7 @@
      mantendo o painel com cara de "aparelho" em vez de pagina de texto */
   html{ -webkit-tap-highlight-color: transparent; }
   body, .device, .wedge-group, .triad-card, .qtab, .rule-row,
-  .chip, .neighbor-pill, .brand, .nameplate, .readout-header,
+  .chip, .neighbor-pill, .brand, .nameplate, .readout-header, .model-badge,
   .field-label, .keybed-title, .screen-label, .legend-strip, footer, svg, .pkey,
   .prog-card, .prog-chip, .prog-play, .progressions-title, .progressions-sub,
   .prog-style, .prog-roman, .prog-vibe, .prog-select-btn, .prog-select-option{
@@ -73,6 +73,7 @@
   }
 
   .device{
+    position:relative;
     max-width:1180px;
     margin:0 auto;
     background:var(--panel);
@@ -81,6 +82,19 @@
     box-shadow:
       14px 14px 32px var(--shadow-dark),
       -10px -10px 26px var(--shadow-light);
+  }
+
+  .nameplate-right{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .model-badge{
+    font-family:var(--font-mono); font-size:0.68rem; letter-spacing:1.5px;
+    color:var(--text-dim);
+    background:var(--panel-hi); border-radius:8px; padding:4px 9px;
+    box-shadow:3px 3px 7px var(--shadow-dark), -2px -2px 6px var(--shadow-light);
+  }
+
+  .about-text{
+    padding:0 6px 10px; color:var(--text); font-size:0.94rem; line-height:1.55;
+    max-width:640px;
   }
 
   .nameplate{
@@ -95,12 +109,11 @@
   }
   .brand{ display:flex; align-items:baseline; gap:10px; }
   .brand .name{ font-size:1.5rem; font-weight:700; letter-spacing:0.3px; color:var(--text); }
-  .brand .model{ font-family:var(--font-mono); font-size:0.78rem; color:var(--text-dim); letter-spacing:1px; }
   .led-row{ display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:0.72rem; color:var(--text-mute); letter-spacing:1px; }
   .led{ width:8px; height:8px; border-radius:50%; background:var(--orange); box-shadow:0 0 10px 3px var(--orange-glow); animation:blink 2.6s ease-in-out infinite; }
   @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
 
-  .subtitle{ padding:0 6px 22px; color:var(--text-mute); font-size:0.92rem; max-width:640px; margin-top:-10px; }
+  .subtitle{ padding:0 6px 22px; color:var(--text-mute); font-size:0.92rem; max-width:640px; }
 
   .bay{ display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; }
 
@@ -325,12 +338,15 @@
   <div class="nameplate">
     <div class="brand">
       <span class="name">TONALIS</span>
-      <span class="model">CÍRCULO DE QUINTAS · MOD. CQ&#8209;12</span>
     </div>
-    <div class="led-row"><span class="led"></span> STANDBY / READY</div>
+    <div class="nameplate-right">
+      <div class="model-badge">CQ&#8209;12</div>
+      <div class="led-row"><span class="led"></span> STANDBY / READY</div>
+    </div>
   </div>
 
-  <p class="subtitle">Selecione uma tonalidade no visor para consultar escala, acordes (com e sem sétima), o desenho no teclado e progressões prontas por estilo.</p>
+  <p class="about-text">Tonalis é um painel de consulta rápida de teoria musical — escalas, acordes e progressões prontas, sempre na tonalidade que você escolher. Pensado pra quem está compondo ou montando beats e precisa de resposta na hora.</p>
+  <p class="subtitle">Selecione uma tonalidade no visor para ver a escala, os acordes, o desenho no teclado e progressões prontas por estilo.</p>
 
   <div class="bay">
     <div class="screen-unit recessed">
